@@ -18,8 +18,19 @@ import '../widgets/section_heading_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   final ValueChanged<bool> onThemeChanged;
+  final bool useInternalDrawer;
+  final VoidCallback? onMenuTap;
+  final VoidCallback? onNavigateFavorites;
+  final VoidCallback? onNavigateSettings;
 
-  const HomeScreen({required this.onThemeChanged, super.key});
+  const HomeScreen({
+    required this.onThemeChanged,
+    this.useInternalDrawer = true,
+    this.onMenuTap,
+    this.onNavigateFavorites,
+    this.onNavigateSettings,
+    super.key,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -165,6 +176,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _openFavoritesFromDrawer() {
+    if (widget.onNavigateFavorites != null) {
+      widget.onNavigateFavorites!.call();
+      return;
+    }
+
     Navigator.of(context).pop();
     Navigator.of(context).push(
       MaterialPageRoute<void>(
@@ -175,6 +191,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _openSettingsFromDrawer() {
+    if (widget.onNavigateSettings != null) {
+      widget.onNavigateSettings!.call();
+      return;
+    }
+
     Navigator.of(context).pop();
     Navigator.of(context).push(
       MaterialPageRoute<void>(
@@ -185,6 +206,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _openFavorites() {
+    if (widget.onNavigateFavorites != null) {
+      widget.onNavigateFavorites!.call();
+      return;
+    }
+
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (BuildContext context) =>
@@ -453,16 +479,23 @@ class _HomeScreenState extends State<HomeScreen> {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        drawer: AppDrawer(
-          selectedSection: DrawerSection.explore,
-          onExploreTap: () {
-            Navigator.of(context).pop();
-          },
-          onFavoritesTap: _openFavoritesFromDrawer,
-          onSettingsTap: 
-          _openSettingsFromDrawer,
-        ),
+        drawer: widget.useInternalDrawer
+            ? AppDrawer(
+                selectedSection: DrawerSection.explore,
+                onExploreTap: () {
+                  Navigator.of(context).pop();
+                },
+                onFavoritesTap: _openFavoritesFromDrawer,
+                onSettingsTap: _openSettingsFromDrawer,
+              )
+            : null,
         appBar: AppBar(
+          leading: (!widget.useInternalDrawer && widget.onMenuTap != null)
+              ? IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: widget.onMenuTap,
+                )
+              : null,
           title: const Text('Explore the Cosmos'),
           centerTitle: true,
           actions: <Widget>[

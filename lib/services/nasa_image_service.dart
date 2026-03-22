@@ -59,8 +59,17 @@ class NasaImageService {
     required String topic,
     required int page,
     int limit = 6,
-  }) {
-    return searchMedia(query: topic, page: page, limit: limit);
+  }) async {
+    final List<NasaImageModel> items = await searchMedia(
+      query: topic,
+      page: page,
+      limit: limit * 3,
+    );
+
+    return items
+        .where((NasaImageModel item) => item.mediaType == 'image')
+        .take(limit)
+        .toList();
   }
 
   Future<String?> getPlayableVideoUrl(String collectionUrl) async {

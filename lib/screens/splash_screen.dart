@@ -2,8 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'home_screen.dart';
 import 'login_screen.dart';
+import 'main_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   final ValueChanged<bool> onThemeChanged;
@@ -71,11 +71,12 @@ class _SplashScreenState extends State<SplashScreen> {
     final User? currentUser = FirebaseAuth.instance.currentUser;
 
     if (currentUser != null) {
-      Navigator.of(context).pushReplacement(
+      Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute<void>(
           builder: (BuildContext context) =>
-              HomeScreen(onThemeChanged: widget.onThemeChanged),
+              MainScreen(onThemeChanged: widget.onThemeChanged),
         ),
+        (Route<dynamic> route) => false,
       );
     } else {
       Navigator.of(context).pushReplacement(

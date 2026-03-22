@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../models/user_profile_model.dart';
 import 'network_service.dart';
+import 'user_profile_service.dart';
 
 class AuthServiceException implements Exception {
   final String message;
@@ -16,6 +18,7 @@ class AuthServiceException implements Exception {
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final NetworkService _networkService = NetworkService();
+  final UserProfileService _profileService = UserProfileService();
 
   // Sign up with email and password
   Future<User?> signUp({
@@ -23,6 +26,7 @@ class AuthService {
     required String password,
     required String firstName,
     required String lastName,
+    required String gender,
   }) async {
     try {
       await _ensureInternetConnection();
@@ -30,9 +34,22 @@ class AuthService {
       UserCredential userCredential = await _auth
           .createUserWithEmailAndPassword(email: email, password: password);
 
+      final User? user = userCredential.user;
+      if (user == null) {
+        throw const AuthServiceException('Unable to create account.');
+      }
+
+      final UserProfileModel profile = UserProfileModel(
+        firstName: firstName,
+        lastName: lastName,
+        gender: gender,
+        email: email,
+      );
+
       // Update user profile with display name
-      await userCredential.user?.updateDisplayName('$firstName $lastName');
-      await userCredential.user?.reload();
+      await user.updateDisplayName(profile.displayName);
+      await _profileService.createUserProfile(uid: user.uid, profile: profile);
+      await user.reload();
 
       return _auth.currentUser;
     } on FirebaseAuthException catch (e) {
@@ -59,7 +76,12 @@ class AuthService {
         password: password,
       );
 
-      return userCredential.user;
+      final User? user = userCredential.user;
+      if (user != null) {
+        await _syncUserProfile(user);
+      }
+
+      return user;
     } on FirebaseAuthException catch (e) {
       throw AuthServiceException(_handleAuthError(e));
     } on AuthServiceException {
@@ -75,6 +97,7 @@ class AuthService {
   Future<void> signOut() async {
     try {
       await _auth.signOut();
+      await _profileService.clearCachedProfile();
     } on FirebaseAuthException catch (e) {
       throw AuthServiceException(_handleAuthError(e));
     } catch (_) {
@@ -93,6 +116,24 @@ class AuthService {
 
       await user.updateDisplayName(newDisplayName);
       await user.reload();
+
+      final UserProfileModel? cachedProfile = await _profileService
+          .getCachedProfile();
+
+      final List<String> nameParts = newDisplayName.trim().split(RegExp(r'\s+'));
+      final String firstName = nameParts.isNotEmpty ? nameParts.first : '';
+      final String lastName = nameParts.length > 1
+          ? nameParts.sublist(1).join(' ')
+          : (cachedProfile?.lastName ?? '');
+
+      final UserProfileModel profile = UserProfileModel(
+        firstName: firstName,
+        lastName: lastName,
+        gender: cachedProfile?.gender ?? 'male',
+        email: user.email ?? cachedProfile?.email ?? '',
+      );
+
+      await _profileService.updateUserProfile(uid: user.uid, profile: profile);
     } on FirebaseAuthException catch (e) {
       throw AuthServiceException(_handleAuthError(e));
     } on AuthServiceException {
@@ -133,6 +174,93 @@ class AuthService {
     } catch (_) {
       throw const AuthServiceException('Unable to change password right now.');
     }
+  }
+
+  Future<void> updateUserProfile({
+    required String firstName,
+    required String lastName,
+    required String gender,
+  }) async {
+    try {
+      await _ensureInternetConnection();
+
+      final User? user = _auth.currentUser;
+      if (user == null) {
+        throw const AuthServiceException('You need to sign in first.');
+      }
+
+      final UserProfileModel profile = UserProfileModel(
+        firstName: firstName,
+        lastName: lastName,
+        gender: gender,
+        email: user.email ?? '',
+      );
+
+      await user.updateDisplayName(profile.displayName);
+      await _profileService.updateUserProfile(uid: user.uid, profile: profile);
+      await user.reload();
+    } on FirebaseAuthException catch (e) {
+      throw AuthServiceException(_handleAuthError(e));
+    } on AuthServiceException {
+      rethrow;
+    } catch (_) {
+      throw const AuthServiceException('Unable to update profile right now.');
+    }
+  }
+
+  Future<UserProfileModel?> getCurrentUserProfile() async {
+    final User? user = _auth.currentUser;
+    if (user == null) {
+      return await _profileService.getCachedProfile();
+    }
+
+    final UserProfileModel? cachedProfile = await _profileService
+        .getCachedProfile();
+
+    final bool hasConnection = await _networkService.hasInternetConnection();
+    if (!hasConnection) {
+      return cachedProfile;
+    }
+
+    try {
+      final UserProfileModel? remoteProfile = await _profileService
+          .fetchUserProfile(user.uid);
+
+      if (remoteProfile != null) {
+        return remoteProfile;
+      }
+    } catch (_) {
+      // Fall back to cache when Firestore cannot be reached.
+    }
+
+    return cachedProfile;
+  }
+
+  Future<void> _syncUserProfile(User user) async {
+    final UserProfileModel? remoteProfile = await _profileService.fetchUserProfile(
+      user.uid,
+    );
+
+    if (remoteProfile != null) {
+      await _profileService.cacheProfile(remoteProfile);
+      return;
+    }
+
+    final List<String> nameParts = (user.displayName ?? '').trim().split(
+      RegExp(r'\s+'),
+    );
+
+    final UserProfileModel fallbackProfile = UserProfileModel(
+      firstName: nameParts.isNotEmpty ? nameParts.first : '',
+      lastName: nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '',
+      gender: 'male',
+      email: user.email ?? '',
+    );
+
+    await _profileService.createUserProfile(
+      uid: user.uid,
+      profile: fallbackProfile,
+    );
   }
 
   Future<void> _ensureInternetConnection() async {

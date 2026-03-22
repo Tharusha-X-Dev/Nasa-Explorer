@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/auth_service.dart';
-import 'home_screen.dart';
+import 'main_screen.dart';
 import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -44,11 +44,12 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (mounted) {
-        Navigator.of(context).pushReplacement(
+        Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute<void>(
             builder: (BuildContext context) =>
-                HomeScreen(onThemeChanged: widget.onThemeChanged),
+                MainScreen(onThemeChanged: widget.onThemeChanged),
           ),
+          (Route<dynamic> route) => false,
         );
       }
     } catch (e) {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/auth_service.dart';
-import 'home_screen.dart';
+import 'main_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   final ValueChanged<bool> onThemeChanged;
@@ -23,6 +23,7 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  String _selectedGender = 'male';
 
   @override
   void dispose() {
@@ -65,14 +66,16 @@ class _SignupScreenState extends State<SignupScreen> {
         password: _passwordController.text,
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
+        gender: _selectedGender,
       );
 
       if (mounted) {
-        Navigator.of(context).pushReplacement(
+        Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute<void>(
             builder: (BuildContext context) =>
-                HomeScreen(onThemeChanged: widget.onThemeChanged),
+                MainScreen(onThemeChanged: widget.onThemeChanged),
           ),
+          (Route<dynamic> route) => false,
         );
       }
     } catch (e) {
@@ -169,6 +172,33 @@ class _SignupScreenState extends State<SignupScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              initialValue: _selectedGender,
+              decoration: InputDecoration(
+                labelText: 'Gender',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                prefixIcon: const Icon(Icons.wc),
+              ),
+              items: const <DropdownMenuItem<String>>[
+                DropdownMenuItem<String>(value: 'male', child: Text('Male')),
+                DropdownMenuItem<String>(
+                  value: 'female',
+                  child: Text('Female'),
+                ),
+              ],
+              onChanged: (String? value) {
+                if (value == null) {
+                  return;
+                }
+
+                setState(() {
+                  _selectedGender = value;
+                });
+              },
             ),
             const SizedBox(height: 12),
             // Password

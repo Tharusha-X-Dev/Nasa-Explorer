@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../models/user_profile_model.dart';
 import '../services/auth_service.dart';
 import '../services/settings_service.dart';
 import '../widgets/app_drawer.dart';
@@ -13,8 +14,19 @@ import 'login_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final ValueChanged<bool>? onThemeChanged;
+  final bool useInternalDrawer;
+  final VoidCallback? onMenuTap;
+  final VoidCallback? onNavigateExplore;
+  final VoidCallback? onNavigateFavorites;
 
-  const SettingsScreen({this.onThemeChanged, super.key});
+  const SettingsScreen({
+    this.onThemeChanged,
+    this.useInternalDrawer = true,
+    this.onMenuTap,
+    this.onNavigateExplore,
+    this.onNavigateFavorites,
+    super.key,
+  });
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -24,12 +36,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final SettingsService _settingsService = SettingsService();
   final AuthService _authService = AuthService();
   bool _isDarkMode = false;
+  UserProfileModel? _profile;
 
   @override
   void initState() {
     super.initState();
     _guardAuthenticatedUser();
     _loadDarkMode();
+    _loadUserProfile();
   }
 
   void _guardAuthenticatedUser() {
@@ -66,6 +80,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
+  Future<void> _loadUserProfile() async {
+    final UserProfileModel? profile = await _authService
+        .getCurrentUserProfile();
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _profile = profile;
+    });
+  }
+
   Future<void> _updateDarkMode(bool value) async {
     setState(() {
       _isDarkMode = value;
@@ -76,10 +103,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _goToExplore() {
+    if (widget.onNavigateExplore != null) {
+      widget.onNavigateExplore!.call();
+      return;
+    }
+
     Navigator.of(context).popUntil((Route<dynamic> route) => route.isFirst);
   }
 
   void _openFavorites() {
+    if (widget.onNavigateFavorites != null) {
+      widget.onNavigateFavorites!.call();
+      return;
+    }
+
     Navigator.of(context).pop();
     Navigator.of(context).push(
       MaterialPageRoute<void>(
@@ -97,7 +134,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
 
     if (updated == true && mounted) {
-      setState(() {});
+      await _loadUserProfile();
     }
   }
 
@@ -156,13 +193,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   String _getCurrentUserDisplayName() {
+    if (_profile != null) {
+      return _profile!.displayName;
+    }
+
     final User? user = FirebaseAuth.instance.currentUser;
     return user?.displayName ?? 'User';
   }
 
   String _getCurrentUserEmail() {
+    if (_profile != null && _profile!.email.isNotEmpty) {
+      return _profile!.email;
+    }
+
     final User? user = FirebaseAuth.instance.currentUser;
     return user?.email ?? 'No email';
+  }
+
+  String _getProfileIconAsset() {
+    final String gender = (_profile?.gender ?? 'male').toLowerCase();
+    return gender == 'female'
+        ? 'assets/profile/female.png'
+        : 'assets/profile/male.png';
   }
 
   @override
@@ -172,25 +224,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     return Scaffold(
-      drawer: AppDrawer(
-        selectedSection: DrawerSection.settings,
-        onExploreTap: _goToExplore,
-        onFavoritesTap: _openFavorites,
-        onSettingsTap: () {
-          Navigator.of(context).pop();
-        },
-      ),
-      appBar: AppBar(
-        leading: Builder(
-          builder: (BuildContext context) {
-            return IconButton(
-              icon: const Icon(Icons.menu),
-              onPressed: () {
-                Scaffold.of(context).openDrawer();
+      drawer: widget.useInternalDrawer
+          ? AppDrawer(
+              selectedSection: DrawerSection.settings,
+              onExploreTap: _goToExplore,
+              onFavoritesTap: _openFavorites,
+              onSettingsTap: () {
+                Navigator.of(context).pop();
               },
-            );
-          },
-        ),
+            )
+          : null,
+      appBar: AppBar(
+        leading: widget.useInternalDrawer
+            ? Builder(
+                builder: (BuildContext context) {
+                  return IconButton(
+                    icon: const Icon(Icons.menu),
+                    onPressed: () {
+                      Scaffold.of(context).openDrawer();
+                    },
+                  );
+                },
+              )
+            : (widget.onMenuTap != null
+                  ? IconButton(
+                      icon: const Icon(Icons.menu),
+                      onPressed: widget.onMenuTap,
+                    )
+                  : null),
         title: const Text('Settings'),
         centerTitle: true,
         actions: <Widget>[
@@ -205,7 +266,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(36),
                 child: Image.asset(
-                  'assets/profile/male.png',
+                  _getProfileIconAsset(),
                   width: 72,
                   height: 72,
                   fit: BoxFit.cover,

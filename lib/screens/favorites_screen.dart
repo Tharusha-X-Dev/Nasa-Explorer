@@ -12,8 +12,19 @@ import '../widgets/media_state_widgets.dart';
 
 class FavoritesScreen extends StatefulWidget {
   final ValueChanged<bool>? onThemeChanged;
+  final bool useInternalDrawer;
+  final VoidCallback? onMenuTap;
+  final VoidCallback? onNavigateExplore;
+  final VoidCallback? onNavigateSettings;
 
-  const FavoritesScreen({this.onThemeChanged, super.key});
+  const FavoritesScreen({
+    this.onThemeChanged,
+    this.useInternalDrawer = true,
+    this.onMenuTap,
+    this.onNavigateExplore,
+    this.onNavigateSettings,
+    super.key,
+  });
 
   @override
   State<FavoritesScreen> createState() => _FavoritesScreenState();
@@ -64,10 +75,20 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   }
 
   void _goToExplore() {
+    if (widget.onNavigateExplore != null) {
+      widget.onNavigateExplore!.call();
+      return;
+    }
+
     Navigator.of(context).popUntil((Route<dynamic> route) => route.isFirst);
   }
 
   void _openSettings() {
+    if (widget.onNavigateSettings != null) {
+      widget.onNavigateSettings!.call();
+      return;
+    }
+
     Navigator.of(context).pop();
     Navigator.of(context).push(
       MaterialPageRoute<void>(
@@ -322,16 +343,23 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          leading: Builder(
-            builder: (BuildContext context) {
-              return IconButton(
-                icon: const Icon(Icons.menu),
-                onPressed: () {
-                  Scaffold.of(context).openDrawer();
-                },
-              );
-            },
-          ),
+          leading: widget.useInternalDrawer
+              ? Builder(
+                  builder: (BuildContext context) {
+                    return IconButton(
+                      icon: const Icon(Icons.menu),
+                      onPressed: () {
+                        Scaffold.of(context).openDrawer();
+                      },
+                    );
+                  },
+                )
+              : (widget.onMenuTap != null
+                    ? IconButton(
+                        icon: const Icon(Icons.menu),
+                        onPressed: widget.onMenuTap,
+                      )
+                    : null),
           title: const Text('Favorites'),
           centerTitle: true,
           bottom: const TabBar(
@@ -341,14 +369,16 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             ],
           ),
         ),
-        drawer: AppDrawer(
-          selectedSection: DrawerSection.favorites,
-          onExploreTap: _goToExplore,
-          onFavoritesTap: () {
-            Navigator.of(context).pop();
-          },
-          onSettingsTap: _openSettings,
-        ),
+        drawer: widget.useInternalDrawer
+            ? AppDrawer(
+                selectedSection: DrawerSection.favorites,
+                onExploreTap: _goToExplore,
+                onFavoritesTap: () {
+                  Navigator.of(context).pop();
+                },
+                onSettingsTap: _openSettings,
+              )
+            : null,
         body: _buildBody(),
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../models/user_profile_model.dart';
 import '../services/auth_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -12,8 +13,10 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final AuthService _authService = AuthService();
-  final TextEditingController _displayNameController = TextEditingController();
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
   bool _isSaving = false;
+  String _selectedGender = 'male';
 
   @override
   void initState() {
@@ -23,20 +26,48 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   void dispose() {
-    _displayNameController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     super.dispose();
   }
 
-  void _loadCurrentDisplayName() {
+  Future<void> _loadCurrentDisplayName() async {
+    final UserProfileModel? profile = await _authService
+        .getCurrentUserProfile();
+
+    if (!mounted) {
+      return;
+    }
+
+    if (profile != null) {
+      setState(() {
+        _firstNameController.text = profile.firstName;
+        _lastNameController.text = profile.lastName;
+        _selectedGender = profile.gender.isEmpty ? 'male' : profile.gender;
+      });
+      return;
+    }
+
     final User? currentUser = FirebaseAuth.instance.currentUser;
-    _displayNameController.text = currentUser?.displayName ?? '';
+    final List<String> nameParts = (currentUser?.displayName ?? '')
+        .trim()
+        .split(RegExp(r'\s+'));
+
+    setState(() {
+      _firstNameController.text = nameParts.isNotEmpty ? nameParts.first : '';
+      _lastNameController.text = nameParts.length > 1
+          ? nameParts.sublist(1).join(' ')
+          : '';
+      _selectedGender = 'male';
+    });
   }
 
   Future<void> _saveProfile() async {
-    final String newName = _displayNameController.text.trim();
+    final String firstName = _firstNameController.text.trim();
+    final String lastName = _lastNameController.text.trim();
 
-    if (newName.isEmpty) {
-      _showSnackBar('Display name cannot be empty.');
+    if (firstName.isEmpty || lastName.isEmpty) {
+      _showSnackBar('First name and last name cannot be empty.');
       return;
     }
 
@@ -45,7 +76,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     });
 
     try {
-      await _authService.updateDisplayName(newName);
+      await _authService.updateUserProfile(
+        firstName: firstName,
+        lastName: lastName,
+        gender: _selectedGender,
+      );
 
       if (!mounted) {
         return;
@@ -89,7 +124,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(40),
               child: Image.asset(
-                'assets/profile/male.png',
+                _selectedGender == 'female'
+                    ? 'assets/profile/female.png'
+                    : 'assets/profile/male.png',
                 width: 80,
                 height: 80,
                 fit: BoxFit.cover,
@@ -98,14 +135,47 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
           const SizedBox(height: 24),
           TextField(
-            controller: _displayNameController,
-            textInputAction: TextInputAction.done,
+            controller: _firstNameController,
+            textInputAction: TextInputAction.next,
             decoration: const InputDecoration(
-              labelText: 'Display Name',
-              hintText: 'Enter your display name',
+              labelText: 'First Name',
+              hintText: 'Enter your first name',
               border: OutlineInputBorder(),
               prefixIcon: Icon(Icons.person_outline),
             ),
+          ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _lastNameController,
+            textInputAction: TextInputAction.done,
+            decoration: const InputDecoration(
+              labelText: 'Last Name',
+              hintText: 'Enter your last name',
+              border: OutlineInputBorder(),
+              prefixIcon: Icon(Icons.person_outline),
+            ),
+          ),
+          const SizedBox(height: 14),
+          DropdownButtonFormField<String>(
+            initialValue: _selectedGender,
+            decoration: const InputDecoration(
+              labelText: 'Gender',
+              border: OutlineInputBorder(),
+              prefixIcon: Icon(Icons.wc),
+            ),
+            items: const <DropdownMenuItem<String>>[
+              DropdownMenuItem<String>(value: 'male', child: Text('Male')),
+              DropdownMenuItem<String>(value: 'female', child: Text('Female')),
+            ],
+            onChanged: (String? value) {
+              if (value == null) {
+                return;
+              }
+
+              setState(() {
+                _selectedGender = value;
+              });
+            },
           ),
           const SizedBox(height: 20),
           SizedBox(
