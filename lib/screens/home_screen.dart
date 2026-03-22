@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 
 import '../models/apod_model.dart';
 import '../models/nasa_image_model.dart';
+import '../models/user_profile_model.dart';
 import 'apod_detail_screen.dart';
 import 'favorites_screen.dart';
 import 'image_detail_screen.dart';
 import 'search_screen.dart';
 import 'settings_screen.dart';
+import '../services/auth_service.dart';
 import '../services/nasa_api_service.dart';
 import '../services/nasa_image_service.dart';
 import '../widgets/app_drawer.dart';
@@ -39,6 +41,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final NasaApiService _nasaApiService = NasaApiService();
   final NasaImageService _nasaImageService = NasaImageService();
+  final AuthService _authService = AuthService();
   final ScrollController _scrollController = ScrollController();
 
   late Future<ApodModel> _apodFuture;
@@ -61,6 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isOffline = false;
   bool _hasMoreImages = true;
   int _currentPage = 1;
+  UserProfileModel? _currentUserProfile;
 
   @override
   void initState() {
@@ -68,6 +72,34 @@ class _HomeScreenState extends State<HomeScreen> {
     _apodFuture = _nasaApiService.fetchApod();
     _loadInitialImages(topic: _currentTopic);
     _scrollController.addListener(_onScroll);
+    _loadUserProfile();
+  }
+
+  Future<void> _loadUserProfile() async {
+    try {
+      final UserProfileModel? profile =
+          await _authService.getCurrentUserProfile();
+      setState(() {
+        _currentUserProfile = profile;
+      });
+    } catch (_) {
+      // Profile loading failed, profile will remain null
+    }
+  }
+
+  String _getProfileImageAsset(String? gender) {
+    if (gender == null) {
+      return 'assets/profile/male.png';
+    }
+    final String lowerGender = gender.toLowerCase();
+    if (lowerGender == 'female') {
+      return 'assets/profile/female.png';
+    }
+    return 'assets/profile/male.png';
+  }
+
+  void _refreshProfilePicture() {
+    _loadUserProfile();
   }
 
   @override
@@ -500,10 +532,27 @@ class _HomeScreenState extends State<HomeScreen> {
           centerTitle: true,
           actions: <Widget>[
             IconButton(
-              onPressed: () {},
-              icon: const CircleAvatar(
+              onPressed: _currentUserProfile != null
+                  ? () {
+                      Navigator.of(context)
+                          .push(
+                            MaterialPageRoute<void>(
+                              builder: (BuildContext context) =>
+                                  SettingsScreen(
+                                onThemeChanged: widget.onThemeChanged,
+                              ),
+                            ),
+                          )
+                          .then((_) {
+                            _refreshProfilePicture();
+                          });
+                    }
+                  : null,
+              icon: CircleAvatar(
                 radius: 14,
-                backgroundImage: AssetImage('assets/profile/male.png'),
+                backgroundImage: AssetImage(
+                  _getProfileImageAsset(_currentUserProfile?.gender),
+                ),
               ),
             ),
           ],

@@ -129,7 +129,7 @@ void main() {
 
         final NasaImageModel model = NasaImageModel.fromJson(json);
 
-        expect(model.keywords.every((String item) => item is String), isTrue);
+        expect(model.keywords, isNotEmpty);
       });
     });
 

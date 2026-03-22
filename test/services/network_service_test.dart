@@ -75,7 +75,7 @@ void main() {
       }
 
       expect(results.length, equals(3));
-      expect(results.every((bool value) => value is bool), isTrue);
+      expect(results, isNotEmpty);
     });
 
     test('isConnected is consistently same as hasInternetConnection', () async {
