@@ -120,7 +120,9 @@ class AuthService {
       final UserProfileModel? cachedProfile = await _profileService
           .getCachedProfile();
 
-      final List<String> nameParts = newDisplayName.trim().split(RegExp(r'\s+'));
+      final List<String> nameParts = newDisplayName.trim().split(
+        RegExp(r'\s+'),
+      );
       final String firstName = nameParts.isNotEmpty ? nameParts.first : '';
       final String lastName = nameParts.length > 1
           ? nameParts.sublist(1).join(' ')
@@ -237,9 +239,8 @@ class AuthService {
   }
 
   Future<void> _syncUserProfile(User user) async {
-    final UserProfileModel? remoteProfile = await _profileService.fetchUserProfile(
-      user.uid,
-    );
+    final UserProfileModel? remoteProfile = await _profileService
+        .fetchUserProfile(user.uid);
 
     if (remoteProfile != null) {
       await _profileService.cacheProfile(remoteProfile);

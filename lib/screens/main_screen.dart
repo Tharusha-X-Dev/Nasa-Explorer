@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../models/user_profile_model.dart';
+import '../services/auth_service.dart';
 import '../widgets/app_drawer.dart';
 import 'favorites_screen.dart';
 import 'home_screen.dart';
@@ -16,12 +18,15 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final AuthService _authService = AuthService();
   int _selectedIndex = 0;
   late final List<Widget> _pages;
+  UserProfileModel? _profile;
 
   @override
   void initState() {
     super.initState();
+    _loadUserProfile();
     _pages = <Widget>[
       HomeScreen(
         onThemeChanged: widget.onThemeChanged,
@@ -59,6 +64,26 @@ class _MainScreenState extends State<MainScreen> {
     ];
   }
 
+  Future<void> _loadUserProfile() async {
+    final UserProfileModel? profile = await _authService
+        .getCurrentUserProfile();
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _profile = profile;
+    });
+  }
+
+  String _getDrawerProfileAsset() {
+    final String gender = (_profile?.gender ?? 'male').toLowerCase();
+    return gender == 'female'
+        ? 'assets/profile/female.png'
+        : 'assets/profile/male.png';
+  }
+
   DrawerSection get _selectedSection {
     switch (_selectedIndex) {
       case 1:
@@ -87,6 +112,8 @@ class _MainScreenState extends State<MainScreen> {
     setState(() {
       _selectedIndex = index;
     });
+
+    _loadUserProfile();
   }
 
   @override
@@ -95,6 +122,8 @@ class _MainScreenState extends State<MainScreen> {
       key: _scaffoldKey,
       drawer: AppDrawer(
         selectedSection: _selectedSection,
+        profileImageAsset: _getDrawerProfileAsset(),
+        profileName: _profile?.displayName,
         onExploreTap: () {
           _selectPage(0);
         },

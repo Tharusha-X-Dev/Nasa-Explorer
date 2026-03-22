@@ -104,8 +104,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         ? item.localImagePath!
         : item.imageUrl;
 
-    debugPrint('Favorite image path: $detailImagePath');
-
     final NasaImageModel detailItem = NasaImageModel(
       title: item.title,
       description: item.description,

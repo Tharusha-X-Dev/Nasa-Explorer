@@ -153,8 +153,6 @@ class _ImageDetailScreenState extends State<ImageDetailScreen> {
                     ? _item.thumbnailUrl!
                     : _item.imageUrl));
 
-    debugPrint('Favorite image path: $imageToShow');
-
     final Widget mediaWidget = _buildMediaImage(imageToShow);
 
     if (!isVideo) {

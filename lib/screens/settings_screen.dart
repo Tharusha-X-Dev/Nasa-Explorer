@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../models/user_profile_model.dart';
 import '../services/auth_service.dart';
 import '../services/settings_service.dart';
+import '../utils/snackbar_utils.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/section_heading_widget.dart';
 import 'about_screen.dart';
@@ -147,7 +148,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _handleLogout() async {
-    // Show confirmation dialog
     showDialog<bool>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
@@ -180,16 +180,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
           }
         } catch (e) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Error logging out: $e'),
-                backgroundColor: Colors.red,
-              ),
-            );
+            SnackbarUtils.showError(context, 'Error logging out: $e');
           }
         }
       }
     });
+  }
+
+  void _showFeatureComingSoon() {
+    SnackbarUtils.showInfo(context, 'Feature coming soon!');
   }
 
   String _getCurrentUserDisplayName() {
@@ -227,6 +226,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       drawer: widget.useInternalDrawer
           ? AppDrawer(
               selectedSection: DrawerSection.settings,
+              profileImageAsset: _getProfileIconAsset(),
+              profileName: _getCurrentUserDisplayName(),
               onExploreTap: _goToExplore,
               onFavoritesTap: _openFavorites,
               onSettingsTap: () {
@@ -329,7 +330,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Icon(Icons.arrow_forward_ios, size: 16),
               ],
             ),
-            onTap: () {},
+            onTap: _showFeatureComingSoon,
           ),
           const SizedBox(height: 16),
           const SectionHeadingWidget(text: 'Support', fontSize: 18),
@@ -339,14 +340,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             leading: const Icon(Icons.mail_outline),
             title: const Text('Contact Us'),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () {},
+            onTap: _showFeatureComingSoon,
           ),
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.star_border),
             title: const Text('Rate Us'),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () {},
+            onTap: _showFeatureComingSoon,
           ),
           ListTile(
             contentPadding: EdgeInsets.zero,

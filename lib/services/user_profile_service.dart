@@ -16,10 +16,12 @@ class UserProfileService {
     required String uid,
     required UserProfileModel profile,
   }) async {
-    await _firestore.collection(_usersCollection).doc(uid).set(<String, dynamic>{
-      ...profile.toMap(),
-      'createdAt': FieldValue.serverTimestamp(),
-    });
+    await _firestore.collection(_usersCollection).doc(uid).set(
+      <String, dynamic>{
+        ...profile.toMap(),
+        'createdAt': FieldValue.serverTimestamp(),
+      },
+    );
 
     await cacheProfile(profile);
   }
@@ -28,17 +30,19 @@ class UserProfileService {
     required String uid,
     required UserProfileModel profile,
   }) async {
-    await _firestore.collection(_usersCollection).doc(uid).set(
-      profile.toMap(),
-      SetOptions(merge: true),
-    );
+    await _firestore
+        .collection(_usersCollection)
+        .doc(uid)
+        .set(profile.toMap(), SetOptions(merge: true));
 
     await cacheProfile(profile);
   }
 
   Future<UserProfileModel?> fetchUserProfile(String uid) async {
-    final DocumentSnapshot<Map<String, dynamic>> snapshot =
-        await _firestore.collection(_usersCollection).doc(uid).get();
+    final DocumentSnapshot<Map<String, dynamic>> snapshot = await _firestore
+        .collection(_usersCollection)
+        .doc(uid)
+        .get();
 
     if (!snapshot.exists) {
       return null;

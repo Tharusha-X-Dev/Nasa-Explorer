@@ -7,12 +7,16 @@ class AppDrawer extends StatelessWidget {
   final VoidCallback onExploreTap;
   final VoidCallback onFavoritesTap;
   final VoidCallback onSettingsTap;
+  final String? profileImageAsset;
+  final String? profileName;
 
   const AppDrawer({
     required this.selectedSection,
     required this.onExploreTap,
     required this.onFavoritesTap,
     required this.onSettingsTap,
+    this.profileImageAsset,
+    this.profileName,
     super.key,
   });
 
@@ -22,14 +26,39 @@ class AppDrawer extends StatelessWidget {
       child: ListView(
         padding: EdgeInsets.zero,
         children: <Widget>[
-          const DrawerHeader(
+          DrawerHeader(
             decoration: BoxDecoration(color: Colors.blue),
-            child: Align(
-              alignment: Alignment.bottomLeft,
-              child: Text(
-                'NASA Explorer',
-                style: TextStyle(color: Colors.white, fontSize: 24),
-              ),
+            child: Row(
+              children: <Widget>[
+                CircleAvatar(
+                  radius: 24,
+                  backgroundImage: AssetImage(
+                    profileImageAsset ?? 'assets/profile/male.png',
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      const Text(
+                        'NASA Explorer',
+                        style: TextStyle(color: Colors.white, fontSize: 20),
+                      ),
+                      if (profileName != null && profileName!.isNotEmpty)
+                        Text(
+                          profileName!,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
           ListTile(
