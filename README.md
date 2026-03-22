@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # version_1_0
 
 A new Flutter project.
@@ -15,3 +16,7 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+=======
+# Nasa-Explorer
+Flutter App
+>>>>>>> 237664b582117855183696d7d1f64b718b6cc6b4
