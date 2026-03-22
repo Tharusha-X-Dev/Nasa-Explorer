@@ -6,21 +6,35 @@
 // tree, read text, and verify that the values of widget properties are correct.
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:version_1_0/firebase_options.dart';
 import 'package:version_1_0/main.dart';
 
 void main() {
   testWidgets('App renders main tabs', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{
+      'isFirstLaunch': true,
+    });
+
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.android);
+
     await tester.pumpWidget(const NasaExplorerApp());
+    await tester.pump();
 
     expect(find.text('NASA Explorer'), findsOneWidget);
-    expect(find.text('Preparing the Cosmos...'), findsOneWidget);
+    expect(
+      find.text("Explore the universe using NASA's images and videos."),
+      findsOneWidget,
+    );
+    expect(find.text('Launch'), findsOneWidget);
 
-    await tester.pump(const Duration(milliseconds: 6500));
+    await tester.tap(find.text('Launch'));
     await tester.pump(const Duration(milliseconds: 500));
 
-    expect(find.text('Explore the Cosmos'), findsOneWidget);
-    expect(find.text('Explore'), findsOneWidget);
-    expect(find.text('Search'), findsOneWidget);
+    // After first launch action, expect Login screen
+    expect(find.text('Welcome Back'), findsOneWidget);
+    expect(find.text('Login'), findsOneWidget);
   });
 }

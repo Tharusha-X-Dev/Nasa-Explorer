@@ -1,10 +1,15 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../services/auth_service.dart';
 import '../services/settings_service.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/section_heading_widget.dart';
 import 'about_screen.dart';
+import 'change_password_screen.dart';
+import 'edit_profile_screen.dart';
 import 'favorites_screen.dart';
+import 'login_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final ValueChanged<bool>? onThemeChanged;
@@ -17,12 +22,36 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   final SettingsService _settingsService = SettingsService();
+  final AuthService _authService = AuthService();
   bool _isDarkMode = false;
 
   @override
   void initState() {
     super.initState();
+    _guardAuthenticatedUser();
     _loadDarkMode();
+  }
+
+  void _guardAuthenticatedUser() {
+    final User? currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser != null) {
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute<void>(
+          builder: (BuildContext context) =>
+              LoginScreen(onThemeChanged: widget.onThemeChanged ?? (_) {}),
+        ),
+        (Route<dynamic> route) => false,
+      );
+    });
   }
 
   Future<void> _loadDarkMode() async {
@@ -60,8 +89,88 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Future<void> _openEditProfile() async {
+    final bool? updated = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (BuildContext context) => const EditProfileScreen(),
+      ),
+    );
+
+    if (updated == true && mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> _openChangePassword() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) => const ChangePasswordScreen(),
+      ),
+    );
+  }
+
+  Future<void> _handleLogout() async {
+    // Show confirmation dialog
+    showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    ).then((bool? shouldLogout) async {
+      if (shouldLogout == true) {
+        try {
+          await _authService.signOut();
+          if (mounted) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute<void>(
+                builder: (BuildContext context) => LoginScreen(
+                  onThemeChanged: widget.onThemeChanged ?? (_) {},
+                ),
+              ),
+              (Route<dynamic> route) => false,
+            );
+          }
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error logging out: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      }
+    });
+  }
+
+  String _getCurrentUserDisplayName() {
+    final User? user = FirebaseAuth.instance.currentUser;
+    return user?.displayName ?? 'User';
+  }
+
+  String _getCurrentUserEmail() {
+    final User? user = FirebaseAuth.instance.currentUser;
+    return user?.email ?? 'No email';
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (FirebaseAuth.instance.currentUser == null) {
+      return const SizedBox.shrink();
+    }
+
     return Scaffold(
       drawer: AppDrawer(
         selectedSection: DrawerSection.settings,
@@ -85,7 +194,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: const Text('Settings'),
         centerTitle: true,
         actions: <Widget>[
-          IconButton(icon: const Icon(Icons.logout), onPressed: () {}),
+          IconButton(icon: const Icon(Icons.logout), onPressed: _handleLogout),
         ],
       ),
       body: ListView(
@@ -103,19 +212,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      'John Doe',
-                      style: TextStyle(
+                      _getCurrentUserDisplayName(),
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 4),
-                    Text('johndoe123@gmail.com'),
+                    const SizedBox(height: 4),
+                    Text(_getCurrentUserEmail()),
                   ],
                 ),
               ),
@@ -129,14 +238,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             leading: const Icon(Icons.person_outline),
             title: const Text('Edit Profile'),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () {},
+            onTap: _openEditProfile,
           ),
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.lock_outline),
             title: const Text('Change Password'),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () {},
+            onTap: _openChangePassword,
           ),
           const SizedBox(height: 16),
           const SectionHeadingWidget(text: 'Preferences', fontSize: 18),
