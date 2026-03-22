@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "237827856539",
+    "project_id": "nasa-explorer-8515",
+    "storage_bucket": "nasa-explorer-8515.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:237827856539:android:6ffc15524515f1bb4e0e3e",
+        "android_client_info": {
+          "package_name": "com.example.version_1_0"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDjWANd36ju69j4I6qPNV77jXLULWbQtSw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

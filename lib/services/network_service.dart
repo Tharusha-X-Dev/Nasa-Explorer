@@ -2,7 +2,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/services.dart';
 
 class NetworkService {
-  Future<bool> isConnected() async {
+  Future<bool> hasInternetConnection() async {
     try {
       final dynamic result = await Connectivity().checkConnectivity();
 
@@ -16,13 +16,17 @@ class NetworkService {
         );
       }
 
-      return true;
+      return false;
     } on MissingPluginException {
       return true;
     } on PlatformException {
       return true;
     } catch (_) {
-      return true;
+      return false;
     }
+  }
+
+  Future<bool> isConnected() {
+    return hasInternetConnection();
   }
 }

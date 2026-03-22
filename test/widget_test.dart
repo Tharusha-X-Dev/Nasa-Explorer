@@ -6,21 +6,26 @@
 // tree, read text, and verify that the values of widget properties are correct.
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:version_1_0/main.dart';
 
 void main() {
-  testWidgets('App renders main tabs', (WidgetTester tester) async {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  testWidgets('App renders first launch splash', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues(<String, Object>{
+      'isFirstLaunch': true,
+    });
+
     await tester.pumpWidget(const NasaExplorerApp());
+    await tester.pump();
 
     expect(find.text('NASA Explorer'), findsOneWidget);
-    expect(find.text('Preparing the Cosmos...'), findsOneWidget);
-
-    await tester.pump(const Duration(milliseconds: 6500));
-    await tester.pump(const Duration(milliseconds: 500));
-
-    expect(find.text('Explore the Cosmos'), findsOneWidget);
-    expect(find.text('Explore'), findsOneWidget);
-    expect(find.text('Search'), findsOneWidget);
+    expect(
+      find.text("Explore the universe using NASA's images and videos."),
+      findsOneWidget,
+    );
+    expect(find.text('Launch'), findsOneWidget);
   });
 }
