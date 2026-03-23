@@ -16,12 +16,12 @@ A safe, non-invasive testing suite has been created that focuses on:
 
 ## Test Categories
 
-### 1. Model Tests (`test/models/`)
+### 1. Model Tests (`test/features/*/models/`)
 
 These tests validate JSON parsing for all data models without touching Firebase or external APIs.
 
 #### ApodModel Tests
-**File:** `test/models/apod_model_test.dart`
+**File:** `test/features/explore/models/apod_model_test.dart`
 
 Tests verify:
 - ✅ JSON parsing with complete data
@@ -31,12 +31,12 @@ Tests verify:
 - ✅ Null value handling without crashes
 - ✅ Constructor with all optional fields
 
-**Run:** `flutter test test/models/apod_model_test.dart`
+**Run:** `flutter test test/features/explore/models/apod_model_test.dart`
 
 ---
 
 #### NasaImageModel Tests
-**File:** `test/models/nasa_image_model_test.dart`
+**File:** `test/features/explore/models/nasa_image_model_test.dart`
 
 Tests verify:
 - ✅ Complete NASA image JSON parsing from API response structure
@@ -47,12 +47,12 @@ Tests verify:
 - ✅ Type conversion for keywords (any type → string list)
 - ✅ Nested data structure parsing (data, links, href)
 
-**Run:** `flutter test test/models/nasa_image_model_test.dart`
+**Run:** `flutter test test/features/explore/models/nasa_image_model_test.dart`
 
 ---
 
 #### FavoriteModel Tests
-**File:** `test/models/favorite_model_test.dart`
+**File:** `test/features/favorites/models/favorite_model_test.dart`
 
 Tests verify:
 - ✅ Complete favorite JSON parsing
@@ -63,12 +63,12 @@ Tests verify:
 - ✅ Empty keywords list handling
 - ✅ Instance creation and equality
 
-**Run:** `flutter test test/models/favorite_model_test.dart`
+**Run:** `flutter test test/features/favorites/models/favorite_model_test.dart`
 
 ---
 
 #### UserProfileModel Tests
-**File:** `test/models/user_profile_model_test.dart`
+**File:** `test/features/auth/models/user_profile_model_test.dart`
 
 Tests verify:
 - ✅ User map parsing from Firestore documents
@@ -82,16 +82,16 @@ Tests verify:
 - ✅ Gender field accepts any value
 - ✅ Email field accepts any value (no validation)
 
-**Run:** `flutter test test/models/user_profile_model_test.dart`
+**Run:** `flutter test test/features/auth/models/user_profile_model_test.dart`
 
 ---
 
-### 2. Service Tests (`test/services/`)
+### 2. Service Tests (`test/core/services/` and `test/features/settings/services/`)
 
 These tests validate business logic that doesn't require Firebase backend access.
 
 #### SettingsService Local Storage Tests
-**File:** `test/services/settings_service_local_storage_test.dart`
+**File:** `test/features/settings/services/settings_service_local_storage_test.dart`
 
 Tests verify:
 - ✅ Dark mode default value (false)
@@ -103,7 +103,7 @@ Tests verify:
 - ✅ Rapid mode changes don't corrupt state
 - ✅ Service works without prior initialization
 
-**Run:** `flutter test test/services/settings_service_local_storage_test.dart`
+**Run:** `flutter test test/features/settings/services/settings_service_local_storage_test.dart`
 
 **Notes:** 
 - Uses `SharedPreferences.setMockInitialValues()` for mocking
@@ -113,7 +113,7 @@ Tests verify:
 ---
 
 #### NetworkService Tests
-**File:** `test/services/network_service_test.dart`
+**File:** `test/core/services/network_service_test.dart`
 
 Tests verify:
 - ✅ hasInternetConnection() returns boolean
@@ -125,7 +125,7 @@ Tests verify:
 - ✅ Repeated checks don't cause state issues
 - ✅ Consistency between hasInternetConnection and isConnected
 
-**Run:** `flutter test test/services/network_service_test.dart`
+**Run:** `flutter test test/core/services/network_service_test.dart`
 
 **Notes:**
 - Tests behavior without mocking Connectivity
@@ -159,22 +159,25 @@ flutter test
 
 ### Run Only Model Tests
 ```bash
-flutter test test/models/
+flutter test test/features/auth/models/
+flutter test test/features/explore/models/
+flutter test test/features/favorites/models/
 ```
 
 ### Run Only Service Tests
 ```bash
-flutter test test/services/
+flutter test test/core/services/
+flutter test test/features/settings/services/
 ```
 
 ### Run Specific Test File
 ```bash
-flutter test test/models/apod_model_test.dart
+flutter test test/features/explore/models/apod_model_test.dart
 ```
 
 ### Run Specific Test Group
 ```bash
-flutter test test/models/apod_model_test.dart -k "fromJson"
+flutter test test/features/explore/models/apod_model_test.dart -k "fromJson"
 ```
 
 ### Generate Coverage Report
