@@ -36,6 +36,25 @@ class _NasaExplorerAppViewState extends State<_NasaExplorerAppView> {
   final SettingsService _settingsService = SettingsService();
   bool _isDarkMode = false;
 
+  static final RoundedRectangleBorder _materialButtonShape =
+      RoundedRectangleBorder(borderRadius: BorderRadius.circular(12));
+
+  ThemeData _buildTheme(Brightness brightness) {
+    return ThemeData(
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: Colors.blue,
+        brightness: brightness,
+      ),
+      useMaterial3: true,
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(shape: _materialButtonShape),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(shape: _materialButtonShape),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -67,17 +86,8 @@ class _NasaExplorerAppViewState extends State<_NasaExplorerAppView> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'NASA Explorer',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-      ),
+      theme: _buildTheme(Brightness.light),
+      darkTheme: _buildTheme(Brightness.dark),
       themeMode: _isDarkMode ? ThemeMode.dark : ThemeMode.light,
       home: SplashScreen(onThemeChanged: _updateTheme),
     );
