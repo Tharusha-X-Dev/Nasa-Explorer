@@ -1,22 +1,174 @@
-<<<<<<< HEAD
-# version_1_0
+# 🚀 NASA Explorer
 
-A new Flutter project.
+NASA Explorer is a cross-platform mobile application developed using Flutter and Dart that allows users to explore real-time space content using NASA public APIs.
 
-## Getting Started
+The application provides features such as the Astronomy Picture of the Day (APOD), NASA image and video search, offline favorites, Firebase authentication, dark mode, and local caching.
 
-This project is a starting point for a Flutter application.
+---
 
-A few resources to get you started if this is your first Flutter project:
+# ✨ Features
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## 🌌 Explore Space Content
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-=======
-# Nasa-Explorer
-Flutter App
->>>>>>> 237664b582117855183696d7d1f64b718b6cc6b4
+* View NASA's Astronomy Picture of the Day (APOD)
+* Display image title, date, and description
+* Support for both images and videos
+
+## 🔍 Search NASA Media
+
+* Search NASA image and video library
+* Popular topic suggestions
+* Recent searches stored locally
+
+## ❤️ Favorites System
+
+* Save favorite images and videos
+* Offline access to saved content
+* Local image caching using Path Provider
+
+## 🔐 Authentication
+
+* User signup and login using Firebase Authentication
+* Logout functionality
+* User profile management
+
+## ⚙️ Settings & Preferences
+
+* Dark mode support
+* Profile editing
+* Change password feature
+* About application section
+
+## 📶 Offline Support
+
+* Favorites available offline
+* Cached user profile information
+* Network error handling
+
+---
+
+# 🛠 Technologies Used
+
+* Flutter
+* Dart
+* Firebase Authentication
+* Cloud Firestore
+* SharedPreferences
+* Path Provider
+* REST APIs
+* NASA APOD API
+* NASA Image & Video Library API
+
+---
+
+# 🧠 Application Architecture
+
+The application follows a structured architecture with separation of concerns:
+
+* **Screens** → UI pages
+* **Services** → API and Firebase operations
+* **Models** → JSON parsing and data representation
+* **Widgets** → Reusable UI components
+* **Utils** → Helper functions and utilities
+
+---
+
+# 📱 Screenshots
+
+> Add your screenshots here
+
+Suggested screenshots:
+
+* Splash Screen
+* Login Screen
+* Explore Screen
+* Search Screen
+* Favorites Screen
+* Settings Screen
+
+---
+
+# 🔥 APIs Used
+
+## NASA APOD API
+
+Used to retrieve the Astronomy Picture of the Day.
+
+## NASA Image & Video Library API
+
+Used for searching NASA space-related images and videos.
+
+---
+
+# 🚀 Installation
+
+## 1. Clone the repository
+
+```bash
+git clone https://github.com/Tharusha-X-Dev/Nasa-Explorer.git
+```
+
+## 2. Navigate to the project
+
+```bash
+cd Nasa-Explorer
+```
+
+## 3. Install dependencies
+
+```bash
+flutter pub get
+```
+
+## 4. Create `.env` file
+
+Add your NASA API key inside:
+
+```env
+NASA_API_KEY=YOUR_API_KEY
+```
+
+## 5. Run the application
+
+```bash
+flutter run
+```
+
+---
+
+# 📂 Project Structure
+
+```plaintext
+lib/
+ ├── models/
+ ├── screens/
+ ├── services/
+ ├── widgets/
+ ├── utils/
+ └── main.dart
+```
+
+---
+
+# 🎯 Future Improvements
+
+* Push notifications for new APOD updates
+* Better video playback support
+* Multi-language support
+* Advanced search filters
+* Cloud synchronization for favorites
+
+---
+
+# 👨‍💻 Developer
+
+Developed by Tharusha
+
+GitHub:
+https://github.com/Tharusha-X-Dev
+
+---
+
+# 📜 License
+
+This project was developed for educational purposes.
