@@ -41,6 +41,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   void initState() {
     super.initState();
     _loadFavorites();
+    // Listen for external changes to the favorites list (add/remove)
+    _favoritesService.addListener(_loadFavorites);
+  }
+
+  @override
+  void dispose() {
+    _favoritesService.removeListener(_loadFavorites);
+    super.dispose();
   }
 
   Future<void> _loadFavorites() async {
@@ -142,7 +150,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       return const Center(child: Text('No favorites saved yet'));
     }
 
-    return TabBarView(children: <Widget>[_buildTilesTab(), _buildListTab()]);
+    return RefreshIndicator(
+      onRefresh: _loadFavorites,
+      child: TabBarView(children: <Widget>[_buildTilesTab(), _buildListTab()]),
+    );
   }
 
   Widget _buildImageWithFallback({

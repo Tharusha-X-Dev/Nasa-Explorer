@@ -1,13 +1,18 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:version_1_0/features/favorites/models/favorite_model.dart';
 
-class FavoritesService {
+class FavoritesService extends ChangeNotifier {
+  // Singleton instance so all callers share the same service and listeners
+  FavoritesService._internal();
+  static final FavoritesService _instance = FavoritesService._internal();
+  factory FavoritesService() => _instance;
   static const String _favoritesKey = 'favorites_items';
   static const String _imagesDir = 'nasa_favorites_images';
 
@@ -49,6 +54,8 @@ class FavoritesService {
 
       currentItems.insert(0, itemWithLocalPath);
       await _saveFavorites(currentItems);
+      // Notify listeners so UI can refresh immediately
+      notifyListeners();
     }
   }
 
@@ -72,6 +79,8 @@ class FavoritesService {
     }
 
     await _saveFavorites(currentItems);
+    // Notify listeners so UI can refresh immediately
+    notifyListeners();
   }
 
   Future<bool> containsFavorite(FavoriteModel item) async {
@@ -129,5 +138,7 @@ class FavoritesService {
         .toList();
 
     await prefs.setStringList(_favoritesKey, encoded);
+    // Also notify after an explicit save in case callers call _saveFavorites
+    notifyListeners();
   }
 }
